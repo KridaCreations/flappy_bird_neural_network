@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://bhrjkpa37yop7"]
+
+[ext_resource type="Script" path="res://scripts/pole_script.gd" id="1_ofmn1"]
+[ext_resource type="Texture2D" uid="uid://fu2s1okpctem" path="res://assets/pipe.png" id="2_aaibx"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1qer2"]
+size = Vector2(160, 640)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_0tvl4"]
+size = Vector2(160, 640)
+
+[node name="demo_pole" type="Area2D"]
+position = Vector2(1279, 477)
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_ofmn1")
+
+[node name="upper_pole" type="CollisionShape2D" parent="."]
+position = Vector2(0, -450)
+shape = SubResource("RectangleShape2D_1qer2")
+
+[node name="lower_pole" type="CollisionShape2D" parent="."]
+position = Vector2(0, 355)
+shape = SubResource("RectangleShape2D_0tvl4")
+
+[node name="lower_pole_sprite" type="Sprite2D" parent="."]
+position = Vector2(0, 355)
+scale = Vector2(0.616858, 0.912982)
+texture = ExtResource("2_aaibx")
+
+[node name="upper_pole_sprite" type="Sprite2D" parent="."]
+position = Vector2(6.10352e-05, -450)
+rotation = 3.14159
+scale = Vector2(0.616858, 0.912982)
+texture = ExtResource("2_aaibx")
