@@ -1,0 +1,48 @@
+[gd_scene load_steps=5 format=3 uid="uid://mrjg1b6ybdat"]
+
+[ext_resource type="Script" path="res://scripts/bird.gd" id="1_1boio"]
+[ext_resource type="Texture2D" uid="uid://bv77chlc5btlq" path="res://assets/bird_sprite.png" id="2_ikerw"]
+[ext_resource type="FontFile" uid="uid://cxc2mlgbptlde" path="res://assets/source-sans-pro/SourceSansPro-Bold.otf" id="3_7ub6x"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_tmoju"]
+radius = 20.0
+
+[node name="bird" type="Area2D"]
+position = Vector2(300, 300)
+collision_mask = 2
+script = ExtResource("1_1boio")
+
+[node name="body_spape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_tmoju")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.0621804, 0.0922557)
+texture = ExtResource("2_ikerw")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -62.0
+offset_top = -11.0
+offset_right = -22.0
+offset_bottom = 12.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("3_7ub6x")
+theme_override_font_sizes/font_size = 17
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="lower_ray" type="RayCast2D" parent="."]
+position = Vector2(-6, 185)
+rotation = -1.57079
+target_position = Vector2(0, 1144)
+collision_mask = 2
+collide_with_areas = true
+collide_with_bodies = false
+
+[node name="upper_ray" type="RayCast2D" parent="."]
+position = Vector2(-6, -165)
+rotation = -1.57079
+target_position = Vector2(0, 1144)
+collision_mask = 2
+collide_with_areas = true
+collide_with_bodies = false

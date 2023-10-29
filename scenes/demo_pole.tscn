@@ -4,10 +4,10 @@
 [ext_resource type="Texture2D" uid="uid://fu2s1okpctem" path="res://assets/pipe.png" id="2_aaibx"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_1qer2"]
-size = Vector2(160, 640)
+size = Vector2(12, 640)
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_0tvl4"]
-size = Vector2(160, 640)
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_x5cg1"]
+size = Vector2(167, 121)
 
 [node name="demo_pole" type="Area2D"]
 position = Vector2(1279, 477)
@@ -16,12 +16,28 @@ collision_mask = 0
 script = ExtResource("1_ofmn1")
 
 [node name="upper_pole" type="CollisionShape2D" parent="."]
-position = Vector2(0, -450)
+position = Vector2(-74, -450)
 shape = SubResource("RectangleShape2D_1qer2")
 
-[node name="lower_pole" type="CollisionShape2D" parent="."]
-position = Vector2(0, 355)
-shape = SubResource("RectangleShape2D_0tvl4")
+[node name="upper_pole2" type="CollisionShape2D" parent="."]
+position = Vector2(69, -450)
+shape = SubResource("RectangleShape2D_1qer2")
+
+[node name="upper_pole5" type="CollisionShape2D" parent="."]
+position = Vector2(-0.5, -187.5)
+shape = SubResource("RectangleShape2D_x5cg1")
+
+[node name="upper_pole6" type="CollisionShape2D" parent="."]
+position = Vector2(-0.5, 101)
+shape = SubResource("RectangleShape2D_x5cg1")
+
+[node name="upper_pole3" type="CollisionShape2D" parent="."]
+position = Vector2(-74, 367)
+shape = SubResource("RectangleShape2D_1qer2")
+
+[node name="upper_pole4" type="CollisionShape2D" parent="."]
+position = Vector2(69, 367)
+shape = SubResource("RectangleShape2D_1qer2")
 
 [node name="lower_pole_sprite" type="Sprite2D" parent="."]
 position = Vector2(0, 355)
@@ -33,3 +49,9 @@ position = Vector2(6.10352e-05, -450)
 rotation = 3.14159
 scale = Vector2(0.616858, 0.912982)
 texture = ExtResource("2_aaibx")
+
+[node name="upper_marker" type="Marker2D" parent="."]
+position = Vector2(0, -128)
+
+[node name="lower_marker" type="Marker2D" parent="."]
+position = Vector2(0, 35)
