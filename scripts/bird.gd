@@ -22,28 +22,31 @@ func jump(delta):
 
 func _physics_process(delta):
 	score += 0.05
-	$Label.text = str(int(score))
+	$Label.text = str(int(score*100))
 	
 	var input1 = 1
 	var input2 = 0
 	var input3 = 0
 	var input4 = global_position.y
-	if($lower_ray.is_colliding() and $upper_ray.is_colliding()):
+	var u_col = ($upper_ray.is_colliding() and ($upper_ray.get_collider().is_in_group("pole")))
+	var l_col = ($lower_ray.is_colliding() and ($lower_ray.get_collider().is_in_group("pole")))
+	if(l_col and u_col):
 		if($lower_ray.get_collider().global_position.x < $upper_ray.get_collider().global_position.x):
 			input2 = $lower_ray.get_collider().upper_marker.global_position.y
 			input3 = $lower_ray.get_collider().lower_marker.global_position.y
 		else:
 			input2 = $upper_ray.get_collider().upper_marker.global_position.y
 			input3 = $upper_ray.get_collider().lower_marker.global_position.y
-	elif($lower_ray.is_colliding()):
+	elif(l_col):
 		input2 = $lower_ray.get_collider().upper_marker.global_position.y
 		input3 = $lower_ray.get_collider().lower_marker.global_position.y
-	elif($upper_ray.is_colliding()):
+	elif(u_col):
 		input2 = $upper_ray.get_collider().upper_marker.global_position.y
 		input3 = $upper_ray.get_collider().lower_marker.global_position.y
 	
 #	print(name," ",solve_genome(input1,input2,input3,input4))
 	var output = solve_genome(input1,input2,input3,input4)
+#	print(output)
 	if(output > 0):
 		jump(delta)
 	
@@ -66,8 +69,10 @@ func solve_genome(input1,input2,input3,input4):
 		if(connection[1] == true):
 			var from = connection[0][0]
 			var to = connection[0][1]
-			value[from] = 0
-			value[to] = 0
+			value[from] = 0.0
+			value[to] = 0.0
+			if(!indegree.has(from)):
+				indegree[from] = 0
 			if(indegree.has(to)):
 				indegree[to] += 1
 			else:
@@ -76,7 +81,7 @@ func solve_genome(input1,input2,input3,input4):
 				adj_matrix[from].append([to,connection[2]])
 			else:
 				adj_matrix[from] = [[to,connection[2]]]
-			
+#	print(adj_matrix)		
 	value[1] = input1
 	value[2] = input2
 	value[3] = input3
@@ -90,17 +95,21 @@ func solve_genome(input1,input2,input3,input4):
 		for node in adj_matrix[curr[i]]:
 			indegree[node[0]] -= 1
 			indegree[node[0]] = max(0,indegree[node[0]])
-			value[node[0]] += value[curr[i]] * adj_matrix[node[1]]
+			value[node[0]] = float(value[node[0]]) + (float(value[curr[i]]) * float(node[1]))
 			if(indegree[node[0]] == 0):
 				curr.append(node[0])
-	
-	return value[5]
-			
+				
+	if(value.has(5)):
+#		print("ter")
+		return value[5]
+	else:
+#		print("here========")
+		return 0			
 
 
 func die(area):
-	get_parent().genomes_score[index] = int(score)
+	get_parent().genomes_score[index] = int(score*100)
 	get_parent().bird_died += 1
 	queue_free()
-	print(self.name," is dead")
+#	print(self.name," is dead")
 	pass

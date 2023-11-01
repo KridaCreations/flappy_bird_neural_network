@@ -1,9 +1,9 @@
 extends Node2D
 
 var bird_model = preload("res://scenes/bird.tscn")
-var max_birds = 15
+var max_birds = 55
 var bird_died = 0
-var generation = 1
+var generation = 0
 var c1 = 1.0
 var c2 = 2.0
 var c3 = 0.5
@@ -12,6 +12,15 @@ var genomes_score = []
 var innovation = {}
 var i_num = 1
 var rand = RandomNumberGenerator.new()
+
+var orig_adj_mat = {
+	1:[[6,0],[7,0]],
+	2:[[6,0],[7,0]],
+	3:[[6,0],[7,0]],
+	4:[[6,0],[7,0]],
+	6:[[5,0]],
+	7:[[5,0]]
+}
 
 func _ready():
 	innovation["1#5"] = i_num
@@ -23,15 +32,21 @@ func _ready():
 	innovation["4#5"] = i_num
 	i_num += 1
 	for i in range(max_birds):
-		genomes.append({
-			"nodes":[1,2,3,4,5],
-			"connections":[[[1,5],true,0.0],[[2,5],true,0.0],[[3,5],true,0.0],[[4,5],true,0.0]]
-		})
+#		genomes.append({
+#			"nodes":[1,2,3,4,5],
+#			"connections":[[[1,5],true,0.0],[[2,5],true,0.0],[[3,5],true,0.0],[[4,5],true,0.0]]
+#		})
+#		genomes.append({ "nodes": [1, 2, 3, 4, 5, 6], "connections": [[[1, 5], true, 0], [[2, 5], true, -0.22505546281109], [[3, 5], true, -0.61630092680879], [[4, 5], true, 0.94433714567712]] })
+		genomes.append({ "nodes": [1, 2, 3, 4, 5, 6], "connections": [[[1, 5], true, 0], [[2, 5], true, -0.38889583973756], [[3, 5], true, -0.6306847079234], [[4, 5], true, 0.94433714567712]] })
 		genomes_score.append(0)
+	
 	create_generation()
 	pass 
 
 func create_generation():
+#	print(genomes)
+	$poles.clear_poles()
+	generation += 1
 	$Label.text = str(generation)
 	bird_died = 0
 	for i in range(genomes.size()):
@@ -56,14 +71,22 @@ func _process(delta):
 #		print(differences)
 		var new_genomes = []
 		var new_genomes_score = []
-		for i in range(5):
+#		print(genomes_score)
+		var maxi = 0
+		for i in range(1,genomes_score.size()):
+			if(genomes_score[i] > genomes_score[maxi]):
+				maxi = i 
+		print(genomes[maxi])
+		print(genomes_score[maxi])
+		$max_score_till_now.text = str(max(int($max_score_till_now.text),genomes_score[maxi]))
+		for i in range(10):
 			var total_score = 0
 			for index in range(genomes_score.size()):
-				total_score += (genomes_score[index]+1)
+				total_score += ((genomes_score[index])+1)
 			var r = rand.randi_range(0,total_score-1)
 			var index = 0
-			print(r)
-			while(r >= genomes_score[index]):
+#			print(r)
+			while(r >= (genomes_score[index]+1)):
 				r -= (genomes_score[index]+1)
 				index += 1
 			new_genomes.append(genomes[index])
@@ -88,10 +111,10 @@ func _process(delta):
 		while(genomes_score.size() < genomes.size()):
 			genomes_score.append(0)
 		
-		print("creating new generations")
-		print(genomes.size())
-		print(genomes_score.size())
-		print(genomes)
+#		print("creating new generations")
+#		print(genomes.size())
+#		print(genomes_score.size())
+#		print(genomes)
 		create_generation()
 		
 func crossover(genome1,genome2):
@@ -109,7 +132,7 @@ func crossover(genome1,genome2):
 		if(connection[1] == true):
 			if(max2 == null):
 				max2 = innovation[get_hash(connection[0])]
-			max2 = max(max1,innovation[get_hash(connection[0])])
+			max2 = max(max2,innovation[get_hash(connection[0])])
 			n2 += 1
 	var new_genome = {
 		"nodes":[],
@@ -182,26 +205,26 @@ func add_connection(genome):
 	var adj_matrix = {}
 	
 	for connection in genome["connections"]:
-		if(connection[1]):
-			var from = connection[0][0]
-			var to = connection[0][1]
-			if(!indegree.has(from)):
-				indegree[from] = 0
-			if(indegree.has(to)):
-				indegree[to] += 1
-			else:
-				indegree[to] = 1
-			# creatind an adjacent list
-			if(adj_matrix.has(from)):
-				adj_matrix[from].append(to)
-			else:
-				adj_matrix[from] = [to]
+		var from = connection[0][0]
+		var to = connection[0][1]
+		if(!indegree.has(from)):
+			indegree[from] = 0
+		if(indegree.has(to)):
+			indegree[to] += 1
+		else:
+			indegree[to] = 1
+		# creatind an adjacent list
+		if(adj_matrix.has(from)):
+			adj_matrix[from].append(to)
+		else:
+			adj_matrix[from] = [to]
 	var queue = []
 	for node in indegree:
 		if(indegree[node] == 0):
 			queue.append(node)
 			layer_data[node] = 0
-			layers.append([])
+			if(layers.size() <= 0):
+				layers.append([])
 			layers[0].append(node)
 	
 	
@@ -210,10 +233,15 @@ func add_connection(genome):
 		for node in adj_matrix[queue[i]]:
 			indegree[node] -= 1
 			indegree[node] = max(0,indegree[node])
-			layer_data[node] = layer_data[queue[i]]+1
-			if(layer_data.size() <= layer_data[node]):
-				layers.append([])
-			layers[layer_data[node]].append(node)
+			if(layer_data.has(node)):
+				layer_data[node] = max(layer_data[node],layer_data[queue[i]]+1)
+			else:
+				layer_data[node] = layer_data[queue[i]]+1
+			if(indegree[node] <= 0):
+				if(layers.size() <= layer_data[node]):
+#					print(layers.size()," ",layer_data[node])
+					layers.append([])
+				layers[layer_data[node]].append(node)
 		
 	#trying 20 times to create new connection
 	var done = false
@@ -224,13 +252,21 @@ func add_connection(genome):
 		
 		var bet = rand.randi_range(0,layers_to_chose.size()-1)
 		var start_layer = layers_to_chose[bet]
+		for temp in range(0,bet+1):
+			layers_to_chose.pop_front()
+#		layers_to_chose.remove_at(bet)
+		if (layers_to_chose.size() == 0):
+			break
 		bet = rand.randi_range(0,layers_to_chose.size()-1)
 		var end_layer = layers_to_chose[bet]
-		var start_node = layers[start_layer][rand.randi_range(0,layers[start_layer].size()-1)]
-		var end_node = layers[end_layer][rand.randi_range(0,layers[end_layer].size()-1)]
+		bet = rand.randi_range(0,layers[start_layer].size()-1)
+		var start_node = layers[start_layer][bet]
+		bet = rand.randi_range(0,layers[end_layer].size()-1)
+		var end_node = layers[end_layer][bet]
 		var found = false
 		for connection in genome["connections"]:
 			if((connection[0][0] == start_node) and (connection[0][1] == end_node)):
+				found = true
 				if(connection[1] == false):
 					connection[1] = true
 					done = true
@@ -255,9 +291,9 @@ func remove_connection(genome):
 	for i in range(genome["connections"].size()):
 		if(genome["connections"][i][1]):
 			active_connections.append(i)
-			
-	var bet = rand.randi_range(0,active_connections.size()-1)
-	genome["connections"][active_connections[bet]][1] = false
+	if(active_connections.size() > 0):
+		var bet = rand.randi_range(0,active_connections.size()-1)
+		genome["connections"][active_connections[bet]][1] = false
 	
 	return genome
 	
@@ -275,14 +311,24 @@ func add_node(genome):
 	for i in range(genome["connections"].size()):
 		if(genome["connections"][i][1]):
 			active_connections.append(i)
-	
-	var bet = rand.randi_range(0,active_connections.size()-1)
-	genome["connections"][active_connections[bet]][1] = false
-	var from = genome["connections"][active_connections[bet]][0][0]
-	var to = genome["connections"][active_connections[bet]][0][1]
-	var weight = genome["connections"][active_connections[bet]][2]
-	genome["connections"].append([[from,mex],true,1])
-	genome["connections"].append([[mex,to],true,weight])
+			
+	if(active_connections.size() > 0):
+		var bet = rand.randi_range(0,active_connections.size()-1)
+		genome["connections"][active_connections[bet]][1] = false
+		var from = genome["connections"][active_connections[bet]][0][0]
+		var to = genome["connections"][active_connections[bet]][0][1]
+		var weight = genome["connections"][active_connections[bet]][2]
+		
+		genome["nodes"].append(mex)
+		if(!innovation.has(get_hash([from,mex]))):
+			innovation[get_hash([from,mex])] = i_num
+			i_num += 1
+		genome["connections"].append([[from,mex],true,1])
+		
+		if(!innovation.has(get_hash([mex,to]))):
+			innovation[get_hash([mex,to])] = i_num
+			i_num += 1
+		genome["connections"].append([[mex,to],true,weight])
 	
 	return genome
 	
@@ -290,10 +336,10 @@ func remove_node(genome):
 	if(genome["nodes"].size() == 5):
 		return
 	var bet = rand.randi_range(5,genome["nodes"].size()-1)
-	var deleting_node = genome["node"][bet]
-	for connection in genome["connections"]:
-		if((genome["connnections"][0][1] == deleting_node) or (genome["connnections"][0][2] == deleting_node)):
-			genome["connections"][1] = false
+	var deleting_node = genome["nodes"][bet]
+	for index in range(genome["connections"].size()):
+		if((genome["connections"][index][0][0] == deleting_node) or (genome["connections"][index][0][1] == deleting_node)):
+			genome["connections"][index][1] = false
 	
 	return genome
 
@@ -349,7 +395,7 @@ func find_distance(genome1,genome2):
 			break
 		if(found == false):
 			disjoint += 1
-	print(excess," ",disjoint," ",weights)
+#	print(excess," ",disjoint," ",weights)
 	return ((float(excess) * c1)/float(n)) + ((float(disjoint) * c2)/float(n)) + ((float(weights) * c3)/(float(common_connections)))
 	
 

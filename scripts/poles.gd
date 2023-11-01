@@ -25,3 +25,8 @@ func _process(delta):
 	
 		
 	
+func clear_poles():
+	for node in get_children():
+		node.queue_free()
+	last_pole = null
+	pass

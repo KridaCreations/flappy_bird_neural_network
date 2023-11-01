@@ -9,7 +9,7 @@ size = Vector2(12, 640)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_x5cg1"]
 size = Vector2(167, 121)
 
-[node name="demo_pole" type="Area2D"]
+[node name="demo_pole" type="Area2D" groups=["pole"]]
 position = Vector2(1279, 477)
 collision_layer = 2
 collision_mask = 0
