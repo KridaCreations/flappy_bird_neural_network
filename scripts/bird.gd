@@ -42,7 +42,7 @@ func _physics_process(delta):
 		input2 = $upper_ray.get_collider().upper_marker.global_position.y
 		input3 = $upper_ray.get_collider().lower_marker.global_position.y
 	
-	print(name," ",solve_genome(input1,input2,input3,input4))
+#	print(name," ",solve_genome(input1,input2,input3,input4))
 	var output = solve_genome(input1,input2,input3,input4)
 	if(output > 0):
 		jump(delta)
@@ -99,7 +99,7 @@ func solve_genome(input1,input2,input3,input4):
 
 
 func die(area):
-	get_parent().genomes_score[index] = score
+	get_parent().genomes_score[index] = int(score)
 	get_parent().bird_died += 1
 	queue_free()
 	print(self.name," is dead")
