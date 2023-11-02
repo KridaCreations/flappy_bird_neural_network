@@ -1,9 +1,11 @@
 extends Node2D
 
 var bird_model = preload("res://scenes/bird.tscn")
-var max_birds = 55
+var max_birds = 50
 var bird_died = 0
 var generation = 0
+var threshold = 6
+var target_species_count = 5
 var c1 = 1.0
 var c2 = 2.0
 var c3 = 0.5
@@ -34,10 +36,24 @@ func _ready():
 	for i in range(max_birds):
 #		genomes.append({
 #			"nodes":[1,2,3,4,5],
-#			"connections":[[[1,5],true,0.0],[[2,5],true,0.0],[[3,5],true,0.0],[[4,5],true,0.0]]
+#			"connections":[
+#				[[1,5],true,0],
+#				[[2,5],true,0],
+#				[[3,5],true,0],
+#				[[4,5],true,0]
+#			]
 #		})
+		genomes.append({
+			"nodes":[1,2,3,4,5],
+			"connections":[
+				[[1,5],true,rand.randf_range(-0.2,0.2)],
+				[[2,5],true,rand.randf_range(-0.2,0.2)],
+				[[3,5],true,rand.randf_range(-0.2,0.2)],
+				[[4,5],true,rand.randf_range(-0.2,0.2)]
+			]
+		})
 #		genomes.append({ "nodes": [1, 2, 3, 4, 5, 6], "connections": [[[1, 5], true, 0], [[2, 5], true, -0.22505546281109], [[3, 5], true, -0.61630092680879], [[4, 5], true, 0.94433714567712]] })
-		genomes.append({ "nodes": [1, 2, 3, 4, 5, 6], "connections": [[[1, 5], true, 0], [[2, 5], true, -0.38889583973756], [[3, 5], true, -0.6306847079234], [[4, 5], true, 0.94433714567712]] })
+#		genomes.append({ "nodes": [1, 2, 3, 4, 5, 6], "connections": [[[1, 5], true, 0], [[2, 5], true, -0.38889583973756], [[3, 5], true, -0.6306847079234], [[4, 5], true, 0.94433714567712]] })
 		genomes_score.append(0)
 	
 	create_generation()
@@ -64,14 +80,8 @@ func _process(delta):
 	
 	if(bird_died == max_birds):
 		bird_died = 0
-#		var differences = []
-#		for i in range(1,genomes.size()):
-#			differences.append(find_distance(genomes[0],genomes[1]))
-#		differences.sort()
-#		print(differences)
 		var new_genomes = []
 		var new_genomes_score = []
-#		print(genomes_score)
 		var maxi = 0
 		for i in range(1,genomes_score.size()):
 			if(genomes_score[i] > genomes_score[maxi]):
@@ -79,44 +89,50 @@ func _process(delta):
 		print(genomes[maxi])
 		print(genomes_score[maxi])
 		$max_score_till_now.text = str(max(int($max_score_till_now.text),genomes_score[maxi]))
-		for i in range(10):
-			var total_score = 0
-			for index in range(genomes_score.size()):
-				total_score += ((genomes_score[index])+1)
-			var r = rand.randi_range(0,total_score-1)
-			var index = 0
-#			print(r)
-			while(r >= (genomes_score[index]+1)):
-				r -= (genomes_score[index]+1)
-				index += 1
-			new_genomes.append(genomes[index])
-			new_genomes_score.append(genomes_score[index])
-			genomes.remove_at(index)
-			genomes_score.remove_at(index)
+		
+		
+		#SPECIATING THE GENOMES
+		print("Start speciating")
+#		print(find_distance(genomes[0],genomes[1]))
+		var species = speciate(threshold)
+		var change = 0.2
+		while((abs(species.size() - target_species_count) > 2) and (abs(change-0) > 0.05)):
+			if(species.size() - target_species_count < -2):
+				threshold -= change
+				change -= 0.01
+			elif(species.size() - target_species_count > 2):
+				threshold += change
+				change -= 0.01
+			species = speciate(threshold)
 			
-
-		var count_parent_genome = new_genomes.size()
-		for i in range(count_parent_genome):
-			for j in range(count_parent_genome):
-				if((i != j) and (i<j)):
-					var new_child
-					if(new_genomes_score[i] > new_genomes_score[j]):
-						new_child = crossover(new_genomes[i],new_genomes[j])
-					else:
-						new_child = crossover(new_genomes[j],new_genomes[i])	
-					new_genomes.append(new_child)
-		genomes = new_genomes
-		for i in range(genomes_score.size()):
-			genomes_score[i] = 0
-		while(genomes_score.size() < genomes.size()):
-			genomes_score.append(0)
+		#CREATING GENOMES FOR NEXT GENERATION
 		
-#		print("creating new generations")
-#		print(genomes.size())
-#		print(genomes_score.size())
-#		print(genomes)
-		create_generation()
+#		create_generation()
 		
+func speciate(threshold):
+	var species = []
+	var total_genomes = genomes.size()
+	var added = []
+	for genome in genomes:
+		added.append(false)
+	for i in range(total_genomes):
+		if(added[i] == false):
+			added[i] = true
+			species.append([i])
+			for j in range(i+1,total_genomes):
+				if(added[j] == false):
+					var dis = find_distance(genomes[i],genomes[j])
+#					print(dis," dis")
+					if(dis <= threshold):
+						added[j] = true
+						print(species.back())
+						species.back().append(j)
+	print(threshold)
+	print(species)
+	print("here")
+	return species
+	
+	
 func crossover(genome1,genome2):
 	var n1 = 0 
 	var max1 = null
@@ -363,6 +379,7 @@ func find_distance(genome1,genome2):
 				max2 = innovation[get_hash(connection[0])]
 			max2 = max(max1,innovation[get_hash(connection[0])])
 			n2 += 1
+	
 	var n = max(n1,n2)
 	var excess = 0
 	var disjoint = 0
@@ -381,7 +398,7 @@ func find_distance(genome1,genome2):
 	for connection in genome1["connections"]:
 		var found = false
 		for connection2 in genome2["connections"]:
-			if(connection == connection2):
+			if(connection[0] == connection2[0]):
 				found = true
 				weights += abs(connection[2] - connection2[2])
 				common_connections += 1
@@ -395,8 +412,14 @@ func find_distance(genome1,genome2):
 			break
 		if(found == false):
 			disjoint += 1
-#	print(excess," ",disjoint," ",weights)
-	return ((float(excess) * c1)/float(n)) + ((float(disjoint) * c2)/float(n)) + ((float(weights) * c3)/(float(common_connections)))
+#	print(excess," ",disjoint," ",weights," ",common_connections)
+	var temp = 0
+	if(n != 0):
+		temp = ((float(excess) * c1)/float(n)) + ((float(disjoint) * c2)/float(n))
+	
+	if(common_connections != 0):
+		temp = temp + ((float(weights) * c3)/(float(common_connections)))
+	return temp#((float(excess) * c1)/float(n)) + ((float(disjoint) * c2)/float(n)) + ((float(weights) * c3)/(float(common_connections)))
 	
 
 	
